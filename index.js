@@ -5,6 +5,7 @@ import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import Stats from 'three/addons/libs/stats.module.js';
 import { M3D, createLabel2D, FPS } from './utils-module.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 document.addEventListener("DOMContentLoaded", main);
 
@@ -42,28 +43,104 @@ function main() {
 	ground.receiveShadow = true;
 	M3D.scene.add(ground);
 
-	// --- แสงพื้นฐานเพื่อให้วัสดุแบบ Standard มองเห็นได้ ----------
-	// HemisphereLight สำหรับแสงนุ่มจากท้องฟ้า/พื้นดิน
-	const hemi = new THREE.HemisphereLight(0x88aaff, 0x444422, 0.45);
-	M3D.scene.add(hemi);
 
-	// AmbientLight สำหรับแสงเติมทั่วฉาก
-	const ambient = new THREE.AmbientLight(0xffffff, 0.25);
-	M3D.scene.add(ambient);
+	// แสงต่าง ๆ ในฉาก
 
-	// DirectionalLight สำหรับเงาและแสงเน้น
-	const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-	dirLight.position.set(10, 20, 10);
-	dirLight.castShadow = true;
-	dirLight.shadow.mapSize.set(1024, 1024);
-	// ตัวเลือก: ปรับขอบเขตของ shadow camera ให้ครอบคลุมพื้นที่ฉาก
-	const d = 50;
-	dirLight.shadow.camera.left = -d;
-	dirLight.shadow.camera.right = d;
-	dirLight.shadow.camera.top = d;
-	dirLight.shadow.camera.bottom = -d;
-	M3D.scene.add(dirLight);
+	const amblight = new THREE.AmbientLight(0x404040, 1.0); // แสงเติมทั่วฉาก (intensity ปรับได้)
+	M3D.scene.add(amblight);
 
+	const sunLight = new THREE.DirectionalLight(0xfff7b2, 1); // แสงทิศทาง (เหมือนดวงอาทิตย์)
+	sunLight.position.set(40, 30, 10);
+	sunLight.castShadow = true;
+	sunLight.shadow.mapSize.set(1024, 1024);
+	M3D.scene.add(sunLight);
+
+	// --- เพิ่มดวงอาทิตย์ตรงกลางฟ้า (Sphere + PointLight)
+	const sunGroup = new THREE.Group();
+	const sunGeo = new THREE.SphereGeometry(12, 64, 32);
+	const sunMat = new THREE.MeshBasicMaterial({ color: 0xffee88 }); // ใช้ MeshBasicMaterial ให้สว่างเสมอ
+	const sunMesh = new THREE.Mesh(sunGeo, sunMat);
+	sunMesh.position.set(0, 100, 100);
+	sunGroup.add(sunMesh);
+
+	const sunPoint = new THREE.PointLight(0xfff7b2, 1.0, 200);
+	sunPoint.position.set(0, 100, 100);
+	M3D.scene.add(sunGroup);
+	M3D.scene.add(sunPoint);
+
+	const mountainGroup = new THREE.Group();
+	M3D.scene.add(mountainGroup);
+
+	// แทนที่ภูเขาโคนด้วยก้อนสี่เหลี่ยมใหญ่ครึ่งพื้น (ซ้าย)
+	const blockGeo = new THREE.BoxGeometry(100, 20, 200); // กว้าง 100 สูง 20 ลึก 200 (ครึ่งพื้นที่)
+	const blockMat = new THREE.MeshStandardMaterial({ color: 0x8B5A2B, roughness: 1 }); // สีน้ำตาล (saddle brown)
+	const block = new THREE.Mesh(blockGeo, blockMat);
+	block.position.set(-50, 10, 0); // วางไว้ทางซ้าย และยกขึ้นครึ่งหนึ่งของความสูง
+	block.castShadow = true;
+	block.receiveShadow = true;
+	mountainGroup.add(block);
+
+//โหลด3D	
+function addGLTFModel({ path, position, scale, rotationY = 1 }) { //ให้รับพารามิเตอร์เป็น path, position, scale, rotationY 
+  const loader = new GLTFLoader();
+  loader.load(
+    path,
+    function (gltf) {
+      const model = gltf.scene;
+      model.position.set(...position);
+      model.scale.set(...scale);
+      model.rotation.y = rotationY;
+      model.traverse((child) => {
+        if (child.isMesh) {
+          child.castShadow = true;
+          child.receiveShadow = true;
+        }
+      });
+      model.castShadow = true;
+      M3D.scene.add(model);
+    },
+    function (xhr) {
+      console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+    },
+    function (error) {
+      console.error('An error happened while loading the model:', error);
+    }
+  );
+}
+
+addGLTFModel({
+	path: './3D/pokemon_pikachu_house.glb', // use actual file in 3D/ folder
+  position: [22, 0, -80],
+  scale: [12, 12, 12],
+  rotationX: Math.PI,
+});
+addGLTFModel({
+	path: './3D/stylized_sakura_tree.glb', // use actual file in 3D/ folder
+  position: [77, -40, -20],
+  scale: [55, 55, 55],
+  rotationX: Math.PI,
+});
+addGLTFModel({
+	path: './3D/green_field.glb', // use actual file in 3D/ folder
+   position: [26, 2, 57],
+  scale: [3, 8, 5],
+  rotationY: Math.PI,
+});
+addGLTFModel({
+	path: './3D/camp_fire.glb', // use actual file in 3D/ folder
+   position: [26, 0, -25],
+  scale: [3, 3, 3],
+  rotationY: Math.PI,
+});
+	
+	// --- เพิ่มแม่น้ำฝั่งตรงข้ามภูเขา (ทางขวา) ---------------------------
+	// ใช้กล่องแบนยาวเป็นแม่น้ำเพื่อความเรียบง่าย
+	const riverGeo = new THREE.BoxGeometry(20, 0.2, 200);
+	const riverMat = new THREE.MeshStandardMaterial({ color: 0x3366ff, roughness: 0.2, transparent: true, opacity: 0.9 });
+	const river = new THREE.Mesh(riverGeo, riverMat);
+	river.position.set(60, 0.1, 0); // วางทางขวาของฉาก (ฝั่งตรงข้ามบล็อก)
+	river.receiveShadow = false;
+	M3D.scene.add(river);
 
 	function animate() {
 		M3D.controls.update(); // อัปเดต controls
