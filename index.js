@@ -71,7 +71,7 @@ function main() {
 	const mountainGroup = new THREE.Group();
 	M3D.scene.add(mountainGroup);
 
-	// ภูเขาก้อนสี่เหลี่ยมใหญ่ครึ่งพื้น (ซ้าย)
+	// ภูเขาก้อนสี่เหลี่ยมใหญ่ครึ่งพื้น
 	const blockGeo = new THREE.BoxGeometry(100, 20, 200); // กว้าง 100 สูง 20 ลึก 200 (ครึ่งพื้นที่)
 	const blockMat = new THREE.MeshStandardMaterial({ color: 0x8B5A2B, roughness: 1 }); // สีน้ำตาล (saddle brown)
 	const block = new THREE.Mesh(blockGeo, blockMat);
@@ -133,8 +133,7 @@ addGLTFModel({
   rotationY: Math.PI,
 });
 	
-	// --- เพิ่มแม่น้ำฝั่งตรงข้ามภูเขา (ทางขวา) ---------------------------
-	// ใช้กล่องแบนยาวเป็นแม่น้ำเพื่อความเรียบง่าย
+	// --- เพิ่มแม่น้ำฝั่งตรงข้ามภูเขา
 	const riverGeo = new THREE.BoxGeometry(20, 0.2, 200);
 	const riverMat = new THREE.MeshStandardMaterial({ color: 0x3366ff, roughness: 0.2, transparent: true, opacity: 0.9 });
 	const river = new THREE.Mesh(riverGeo, riverMat);
