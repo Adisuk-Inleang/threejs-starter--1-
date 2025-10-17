@@ -71,7 +71,7 @@ function main() {
 	const mountainGroup = new THREE.Group();
 	M3D.scene.add(mountainGroup);
 
-	// แทนที่ภูเขาโคนด้วยก้อนสี่เหลี่ยมใหญ่ครึ่งพื้น (ซ้าย)
+	// ภูเขาก้อนสี่เหลี่ยมใหญ่ครึ่งพื้น (ซ้าย)
 	const blockGeo = new THREE.BoxGeometry(100, 20, 200); // กว้าง 100 สูง 20 ลึก 200 (ครึ่งพื้นที่)
 	const blockMat = new THREE.MeshStandardMaterial({ color: 0x8B5A2B, roughness: 1 }); // สีน้ำตาล (saddle brown)
 	const block = new THREE.Mesh(blockGeo, blockMat);
